@@ -1,67 +1,62 @@
 # xtwins-github-sandbox
 
-Repositório **só para testes** do conector GitHub do xTwins next-gen (EPIC[19], OI-071). É aqui que o test-automator
-cria branches, faz commit dos pacotes de testes e abre pull requests durante o desenvolvimento e as demos.
+Repositório **só para testes** do conector GitHub do xTwins next-gen (EPIC[19], OI-071). O test-automator cria aqui
+branches, faz commit dos pacotes de testes e abre pull requests. Inclui também a aplicação que esses testes exercitam,
+a **Loja Aurora**.
 
-Não tem código de produção nem dados reais: pode ser limpo a qualquer momento.
+Nada aqui é produção: as contas, as encomendas e os pagamentos são fictícios, e o repositório pode ser limpo a
+qualquer momento.
 
-## O que está aqui
+**Loja Aurora:** https://lnl10.github.io/xtwins-github-sandbox/ · **Guia para a equipa:** [docs/guia-de-testes.md](docs/guia-de-testes.md)
 
-| Pasta | Para quê |
+## Estrutura
+
+| Pasta | Conteúdo |
 |---|---|
-| `docs/` | **Gestor de Tarefas**, a app de demonstração (HTML + JS, sem backend), publicada no GitHub Pages. É a `app_url` dos testes. |
-| `requirements/` | Documento de requisitos da app (`.md` e `.pdf`), o input do story-writer no cenário `full_pipeline` (o `.pdf` passa pelo OCR). |
-| `generated-tests/` | Onde o test-automator entrega os pacotes (`generated-tests/<request_id>/`). `exemplo-login/` é um pacote de exemplo, já validado contra a app, para a leitura e a reutilização de passos (#140, #141). |
+| [`website/`](website) | Loja Aurora: loja online com catálogo, checkout, área de cliente e backoffice. HTML, CSS e JavaScript, sem servidor; publicada no GitHub Pages. |
+| [`requirements/`](requirements) | Documentos de requisitos da Loja Aurora (`.md` e `.pdf`), o input do story-writer. |
+| [`generated-tests/`](generated-tests) | Onde o test-automator entrega os pacotes (`generated-tests/<request_id>/`). Tem um pacote de exemplo para a leitura e a reutilização de passos. |
+| [`docs/`](docs) | Guia de testes do conector: configuração, contas, dados e cenários por story. |
+| [`tests/site/`](tests/site) | Testes da própria Loja Aurora (pytest + Playwright), corridos no CI antes de cada publicação. |
+| [`tools/`](tools) | `serve.py` (servir a loja localmente) e `build_pdfs.py` (gerar os PDF dos requisitos). |
 
-## Configuração nos ambientes xTwins
+## Início rápido
 
 ```dotenv
-# xtwins-next-gen_implementation/.env (serviço connectors)
+# xtwins-next-gen_implementation/.env
 GITHUB_TOKEN=<token fine-grained só deste repositório: Contents e Pull requests em leitura e escrita>
-
-# testes de integração do conector e dos agentes
 GITHUB_TEST_REPOSITORY=LnL10/xtwins-github-sandbox
 ```
 
-`publish` do test-automator:
-
 ```json
-{ "repository": "LnL10/xtwins-github-sandbox", "base_branch": "main", "mode": "pull_request" }
+{ "publish": { "repository": "LnL10/xtwins-github-sandbox", "base_branch": "main", "mode": "pull_request" },
+  "app_url": "https://lnl10.github.io/xtwins-github-sandbox/" }
 ```
 
-## App de demonstração
+Contas de teste: `ana.silva@example.com` / `Cliente#2026` (cliente) e `gestor@example.com` / `Gestor#2026` (gestor).
+Mais dados e o painel de demonstração (latência, falhas simuladas) em [docs/guia-de-testes.md](docs/guia-de-testes.md).
 
-- URL: https://lnl10.github.io/xtwins-github-sandbox/
-- Conta: utilizador `qa.demo`, palavra-passe `Demo#2026` (conta fictícia, só existe na app de demonstração; nos
-  pacotes gerados vai sempre por variável de ambiente, por exemplo `LOGIN_PASSWORD`).
-- Páginas: `login.html`, `tarefas.html` (pesquisa e filtro por estado), `nova-tarefa.html` (validações),
-  `tarefa.html?id=N` (iniciar, concluir, reabrir, eliminar com confirmação).
-- Os dados ficam no `localStorage` do browser: cada contexto Playwright novo começa com as 6 tarefas de exemplo.
-  No browser normal, "Repor dados de demonstração" na lista volta ao início.
-- Todos os elementos têm etiqueta e `data-testid`, e as páginas são ficheiros separados (sem rotas `#`), porque o
-  test-automator guarda o caminho e a query de cada página, mas não o fragmento.
+## A Loja Aurora em números
 
-Para correr localmente no mesmo caminho do Pages:
+- 20 páginas: loja (início, catálogo, produto, carrinho, checkout em 4 passos, confirmação), conta (login, registo,
+  recuperação, perfil, encomendas, moradas), backoffice (painel, encomendas, produtos, utilizadores), acesso negado e
+  painel de demonstração, mais a página 404.
+- 25 produtos em 6 categorias, 5 contas, 30 encomendas, 4 códigos promocionais.
+- Regras de negócio: stock, opções com preço, cupões com mínimo e validade, portes por região, validação de NIF, de
+  código postal e de cartão (Luhn), bloqueio após 5 tentativas de login, estados das encomendas com transições,
+  permissões por perfil.
+- Padrões de UI: filtros e ordenação no URL, paginação, separadores, janelas de diálogo, notificações com "Anular",
+  ações em massa, exportação CSV, upload de imagem, carregamento e erro simulados.
+- 46 testes automáticos em `tests/site/`.
+
+## Desenvolvimento
 
 ```bash
-mkdir -p /tmp/serve && cp -r docs /tmp/serve/xtwins-github-sandbox
-python -m http.server 8765 --directory /tmp/serve
-# APP_URL=http://localhost:8765/xtwins-github-sandbox/
-# a partir do docker compose do xTwins: http://host.docker.internal:8765/xtwins-github-sandbox/
+python tools/serve.py                         # http://localhost:8765/xtwins-github-sandbox/
+pip install pytest==9.1.1 playwright==1.64.1 && playwright install chromium
+pytest tests/site                             # contra a cópia local
+SITE_URL=https://lnl10.github.io/xtwins-github-sandbox/ pytest tests/site   # contra o site publicado
 ```
 
-## Correr o pacote de exemplo
-
-```bash
-cd generated-tests/exemplo-login
-pip install -r requirements.txt
-playwright install chromium
-APP_URL=https://lnl10.github.io/xtwins-github-sandbox/ LOGIN_PASSWORD='Demo#2026' pytest
-```
-
-## Regras
-
-- `main` é a branch de base. As entregas do xTwins vão sempre para `xtwins/<request_id>-<timestamp>`.
-- Não fazer merge dos PRs do xTwins em `main`, a não ser que se queira que passem a contar como "testes existentes"
-  para a reutilização (#141).
-- Branches e PRs antigos podem ser apagados e fechados sem aviso.
+Um push para `main` que mude `website/` corre os testes e, se passarem, publica no GitHub Pages (workflow **Site**).
+Os PRs que mudam `generated-tests/` correm os pacotes alterados contra a loja (workflow **Testes gerados**).

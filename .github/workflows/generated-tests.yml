@@ -1,0 +1,56 @@
+name: Testes gerados
+
+# Corre os pacotes de generated-tests/ alterados num PR contra uma cópia local da Loja Aurora.
+# Informativo: a execução dos testes não faz parte do xTwins (OI-005).
+
+on:
+  pull_request:
+    paths: ["generated-tests/**"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  run:
+    name: Correr pacotes
+    runs-on: ubuntu-latest
+    env:
+      APP_URL: http://localhost:8765/xtwins-github-sandbox/
+      # Contas fictícias da Loja Aurora (ver docs/guia-de-testes.md).
+      APP_USERNAME: ana.silva@example.com
+      APP_PASSWORD: Cliente#2026
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Pacotes a correr
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            git diff --name-only "origin/${{ github.base_ref }}...HEAD" -- generated-tests | awk -F/ 'NF>2 {print $2}' | sort -u > packages.txt
+          else
+            find generated-tests -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | sort > packages.txt
+          fi
+          echo "Pacotes:"; cat packages.txt
+      - name: Servir a Loja Aurora
+        run: |
+          python tools/serve.py 8765 &
+          sleep 2
+          curl -sf "$APP_URL" > /dev/null
+      - name: Correr
+        run: |
+          status=0
+          while read -r pkg; do
+            dir="generated-tests/$pkg"
+            [ -f "$dir/requirements.txt" ] || { echo "$pkg: sem requirements.txt, ignorado"; continue; }
+            echo "::group::$pkg"
+            python -m venv "/tmp/venv-$pkg"
+            "/tmp/venv-$pkg/bin/pip" install -q -r "$dir/requirements.txt"
+            "/tmp/venv-$pkg/bin/python" -m playwright install --with-deps chromium > /dev/null
+            (cd "$dir" && "/tmp/venv-$pkg/bin/python" -m pytest -p no:cacheprovider -rA) || { status=1; echo "::error::$pkg falhou"; }
+            echo "::endgroup::"
+          done < packages.txt
+          exit $status

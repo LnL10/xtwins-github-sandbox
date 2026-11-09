@@ -1,0 +1,49 @@
+name: Site
+
+on:
+  push:
+    branches: [main]
+    paths: ["website/**", "tests/site/**", "tools/serve.py", ".github/workflows/site.yml"]
+  pull_request:
+    paths: ["website/**", "tests/site/**", "tools/serve.py", ".github/workflows/site.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: site-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Testes da Loja Aurora
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pytest==9.1.1 playwright==1.64.1
+      - run: python -m playwright install --with-deps chromium
+      - run: pytest tests/site
+
+  deploy:
+    name: Publicar no GitHub Pages
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: website
+      - id: deployment
+        uses: actions/deploy-pages@v4
