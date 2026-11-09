@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Iniciar sessão — Gestor de Tarefas</title>
+  <link rel="stylesheet" href="app.css">
+  <script src="app.js" defer></script>
+</head>
+<body data-page="login">
+  <main>
+    <section class="card narrow">
+      <h1>Gestor de Tarefas</h1>
+      <h2>Iniciar sessão</h2>
+      <div class="alert ok" role="status" data-testid="flash-message" hidden></div>
+      <div class="alert error" role="alert" data-testid="login-error" hidden></div>
+      <form id="login-form" novalidate>
+        <label for="username">Utilizador</label>
+        <input id="username" name="username" autocomplete="username" data-testid="login-username">
+        <label for="password">Palavra-passe</label>
+        <input id="password" name="password" type="password" autocomplete="current-password" data-testid="login-password">
+        <div class="actions">
+          <button type="submit" class="primary" data-testid="login-submit">Entrar</button>
+        </div>
+      </form>
+    </section>
+  </main>
+</body>
+</html>

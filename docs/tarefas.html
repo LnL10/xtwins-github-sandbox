@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tarefas — Gestor de Tarefas</title>
+  <link rel="stylesheet" href="app.css">
+  <script src="app.js" defer></script>
+</head>
+<body data-page="tasks">
+  <header class="topbar">
+    <span class="brand">Gestor de Tarefas</span>
+    <nav aria-label="Principal">
+      <a href="tarefas.html" aria-current="page" data-testid="nav-tasks">Tarefas</a>
+      <a href="nova-tarefa.html" data-testid="nav-new-task">Nova tarefa</a>
+    </nav>
+    <div class="user">
+      <span data-testid="current-user"></span>
+      <button type="button" class="link" data-testid="logout">Terminar sessão</button>
+    </div>
+  </header>
+  <main>
+    <section class="card">
+      <h1>Tarefas</h1>
+      <div class="alert ok" role="status" data-testid="flash-message" hidden></div>
+      <div class="toolbar">
+        <div>
+          <label for="search">Pesquisar</label>
+          <input id="search" type="search" placeholder="Título da tarefa" data-testid="tasks-search">
+        </div>
+        <div>
+          <label for="status-filter">Estado</label>
+          <select id="status-filter" data-testid="tasks-filter-status">
+            <option value="">Todas</option>
+            <option>Por fazer</option>
+            <option>Em curso</option>
+            <option>Concluída</option>
+          </select>
+        </div>
+        <a href="nova-tarefa.html" class="button primary" data-testid="tasks-new">Nova tarefa</a>
+      </div>
+      <p class="muted" data-testid="tasks-count"></p>
+      <table data-testid="tasks-table">
+        <thead>
+          <tr><th scope="col">Título</th><th scope="col">Prioridade</th><th scope="col">Estado</th><th scope="col">Data limite</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <p data-testid="tasks-empty" hidden>Nenhuma tarefa encontrada.</p>
+      <div class="actions">
+        <button type="button" data-testid="reset-data">Repor dados de demonstração</button>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

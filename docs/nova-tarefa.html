@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Nova tarefa — Gestor de Tarefas</title>
+  <link rel="stylesheet" href="app.css">
+  <script src="app.js" defer></script>
+</head>
+<body data-page="new-task">
+  <header class="topbar">
+    <span class="brand">Gestor de Tarefas</span>
+    <nav aria-label="Principal">
+      <a href="tarefas.html" data-testid="nav-tasks">Tarefas</a>
+      <a href="nova-tarefa.html" aria-current="page" data-testid="nav-new-task">Nova tarefa</a>
+    </nav>
+    <div class="user">
+      <span data-testid="current-user"></span>
+      <button type="button" class="link" data-testid="logout">Terminar sessão</button>
+    </div>
+  </header>
+  <main>
+    <section class="card">
+      <h1>Nova tarefa</h1>
+      <form id="task-form" novalidate>
+        <label for="title">Título</label>
+        <input id="title" name="title" maxlength="200" data-testid="task-title-input">
+        <p class="field-error" data-testid="error-title" hidden></p>
+
+        <label for="description">Descrição</label>
+        <textarea id="description" name="description" data-testid="task-description-input"></textarea>
+
+        <label for="priority">Prioridade</label>
+        <select id="priority" name="priority" data-testid="task-priority-input">
+          <option>Baixa</option>
+          <option selected>Média</option>
+          <option>Alta</option>
+        </select>
+
+        <label for="due-date">Data limite</label>
+        <input id="due-date" name="due-date" type="date" data-testid="task-due-date-input">
+        <p class="field-error" data-testid="error-due-date" hidden></p>
+
+        <div class="actions">
+          <button type="submit" class="primary" data-testid="task-save">Guardar</button>
+          <a href="tarefas.html" class="button" data-testid="task-cancel">Cancelar</a>
+        </div>
+      </form>
+    </section>
+  </main>
+</body>
+</html>
